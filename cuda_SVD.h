@@ -11,6 +11,7 @@
 #include <string>
 #include <sstream>
 #include <random>
+#include <iterator>
 
 #include <eigen3/Eigen/Dense>
 using namespace Eigen;
@@ -66,7 +67,13 @@ void gaussianFill(MatrixXf &output, int size_row, int size_col) {
 }
 
 
-void decompose_CPU(stringstream& buffer, int batch_size, int num_users, int num_items, int num_f);
+void decompose_CPU(stringstream& buffer, 
+    int batch_size, 
+    int num_users, 
+    int num_items, 
+    int num_f, 
+    float step_size, 
+    float regualtion);
 
 
 #endif
