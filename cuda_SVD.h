@@ -10,9 +10,10 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <random>
 
-#include <Eigen/Dense>
-
+#include <eigen3/Eigen/Dense>
+using namespace Eigen;
 
 /*
 gpuErrChk
@@ -52,5 +53,24 @@ cudaEvent_t stop;
     gpuErrChk(cudaEventDestroy(stop));                      \
 }
 */
+// Fills output with standard normal data
+void gaussianFill(MatrixXf &output, const int size_row, const int size_col) {
+    // seed generator to 2015
+    std::default_random_engine generator(2015);
+    std::normal_distribution<float> distribution(0.0, 0.1);
+    for (int i=0; i < size_row; ++i) {
+        for (int j = 0; j < size_col; ++j) {
+            output(i, j) = distribution(generator);
+        }
+    }
+}
+
+
+void decompose_CPU(istream& buffer, 
+    const int batch_size, 
+    const int num_users, 
+    const int num_items, 
+    const int num_f);
+
 
 #endif
