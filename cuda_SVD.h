@@ -14,7 +14,7 @@
 
 #include <eigen3/Eigen/Dense>
 using namespace Eigen;
-
+using namespace std;
 /*
 gpuErrChk
 Modified from:
@@ -54,7 +54,7 @@ cudaEvent_t stop;
 }
 */
 // Fills output with standard normal data
-void gaussianFill(MatrixXf &output, const int size_row, const int size_col) {
+void gaussianFill(MatrixXf &output, int size_row, int size_col) {
     // seed generator to 2015
     std::default_random_engine generator(2015);
     std::normal_distribution<float> distribution(0.0, 0.1);
@@ -66,11 +66,7 @@ void gaussianFill(MatrixXf &output, const int size_row, const int size_col) {
 }
 
 
-void decompose_CPU(istream& buffer, 
-    const int batch_size, 
-    const int num_users, 
-    const int num_items, 
-    const int num_f);
+void decompose_CPU(stringstream& buffer, int batch_size, int num_users, int num_items, int num_f);
 
 
 #endif

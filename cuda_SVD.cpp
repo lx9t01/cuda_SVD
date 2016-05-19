@@ -1,12 +1,13 @@
 // cuda_SVD.cpp
 
 #include "cuda_SVD.h"
-#define batch_size 1024
+
 
 using Eigen::MatrixXd;
 using namespace Eigen;
+using namespace std;
 
-
+#define BATCH_SIZE 1024
 
 void readData(string str, int *output) {
     stringstream stream(str);
@@ -19,11 +20,7 @@ void readData(string str, int *output) {
 }
 
 
-void decompose_CPU(istream& buffer, 
-    const int batch_size, 
-    const int num_users, 
-    const int num_items, 
-    const int num_f) {
+void decompose_CPU(stringstream& buffer, int batch_size, int num_users, int num_items, int num_f) {
     MatrixXf P(num_users, num_f);
     MatrixXf Q(num_f, num_items);
 
@@ -43,17 +40,14 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    const int num_users;
-    num_users = atoi(argv[2]);
-    const int num_items;
-    num_items = atoi(argv[3]);
-    const int num_f;
-    num_f = atoi(argv[4]);
+    int num_users = atoi(argv[2]);
+    int num_items = atoi(argv[3]);
+    int num_f = atoi(argv[4]);
 
     ifstream infile(argv[1]);
     stringstream buffer;
     buffer << infile.rdbuf();
-    decompose_CPU(buffer, batch_size, num_users, num_items, num_f);
+    decompose_CPU(buffer, BATCH_SIZE, num_users, num_items, num_f);
 
 
 }
