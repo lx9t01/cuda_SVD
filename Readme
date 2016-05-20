@@ -1,1 +1,23 @@
 Readme for project -- matrix decomposition
+
+CPU
+==============================================
+
+num_users = 943;  num_items = 1682;  num_f = 30;
+
+const float gamma = 0.01;  const float lamda = 0.005;
+
+the last few deltas are listed below: 
+delta_new: -9.74536e-05
+stop condition: 0.216542
+delta_new: 0.000672281
+stop condition: -6.89847
+delta_new: 5.57303e-06   (STOPPED here)
+
+Total time to run classify on CPU: 10385.511719 (s)
+After training, the training error RMS: 0.344782, 
+which means in average, the trained model of SVD will geenrate 
+a rating matrix that has a difference of 0.35 stars compared 
+with existing data. 
+
+It took Mako CPU almost 3 hours to train. 

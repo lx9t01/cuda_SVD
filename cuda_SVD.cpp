@@ -20,6 +20,20 @@ void readData(string str, int *output) {
     // assert(component_idx == 3);
 }
 
+void writeCSV(MatrixXf R) {
+    int r = R.rows();
+    int c = R.cols();
+    ofstream outputfile;
+    outputfile.open("result.csv");
+    for (int i = 0; i < r; ++i) {
+        for (int j = 0; j < c; ++j) {
+            outputfile << R(i,j) << ",";
+        }
+        outputfile << "\n";
+    }
+    outputfile.close();
+}
+
 
 void decompose_CPU(stringstream& buffer, 
     int batch_size, 
@@ -74,6 +88,7 @@ void decompose_CPU(stringstream& buffer,
         cout << RMS << endl;
         RMS_new = RMS;
     }
+    MatrixXf R_1;
 
     while (abs(delta_new / delta) >= 1e-2) {
         cout << "stop condition: " << (delta_new / delta) << endl;
@@ -91,7 +106,7 @@ void decompose_CPU(stringstream& buffer,
                 // cout << step_size * (e * (Q.col(rating[1])).transpose() - regulation * P.row(rating[0])) << endl;
                 // getchar();
             }
-            MatrixXf R_1 = P * Q;
+            R_1 = P * Q;
             RMS_new = 0;
             for (int i = 0; i < num_users; ++i) {
                 for (int j = 0; j < num_items; ++j) {
@@ -110,6 +125,7 @@ void decompose_CPU(stringstream& buffer,
         // getchar();
         random_shuffle(data.begin(), data.end());
     }
+    writeCSV(R_1);
     // cout << P * Q << endl;
     // {
         
@@ -149,6 +165,8 @@ int main(int argc, char* argv[]) {
     buffer1 << infile_t.rdbuf();
     buffer2 << infile_v.rdbuf();
     decompose_CPU(buffer1, BATCH_SIZE, num_users, num_items, num_f, gamma, lamda);
+    printf("Training complete, writing result rating matrix to CSV....\n");
+
     time_final = clock();
     printf("Total time to run classify on CPU: %f (s)\n", (time_final - time_initial) / CLOCKS_PER_SEC);
     return 1;
