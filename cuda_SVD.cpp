@@ -105,6 +105,7 @@ void decompose_CPU(stringstream& buffer,
             RMS_new = sqrt(RMS_new);
             cout << "RMS: " << RMS_new << endl;
             delta_new = RMS - RMS_new;
+            cout << "delta_new: " << delta_new << endl;
         }
         // getchar();
         random_shuffle(data.begin(), data.end());
