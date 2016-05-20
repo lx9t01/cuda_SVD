@@ -103,7 +103,7 @@ void decompose_CPU(stringstream& buffer,
             }
             RMS_new /= review_idx;
             RMS_new = sqrt(RMS_new);
-            cout << "RMS: " << RMS_new << " ";
+            cout << "RMS: " << RMS_new << endl;
         }
         delta_new = RMS - RMS_new;
         cout << "delta_new: " << delta_new << endl;
