@@ -141,6 +141,7 @@ int main(int argc, char* argv[]) {
     const float gamma = 0.01;
     const float lamda = 0.001;
 
+    float time_initial, time_final;
     time_initial = clock();
     ifstream infile_t(argv[1]);
     ifstream infile_v(argv[2]);
