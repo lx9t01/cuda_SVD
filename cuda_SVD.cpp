@@ -56,6 +56,9 @@ void decompose_CPU(stringstream& buffer,
     // }
     float RMS = 0;
     float RMS_new = 0;
+    float delta = 1;
+    float delta_new = 1;
+
     {
         MatrixXf R_1 = P * Q;
         for (int i = 0; i < num_users; ++i) {
@@ -67,11 +70,14 @@ void decompose_CPU(stringstream& buffer,
             }
         }
         RMS /= review_idx;
+        RMS = sqrt(RMS);
         cout << RMS << endl;
         RMS_new = RMS;
     }
-    while (abs(RMS_new / RMS) >= 1e-3) {
+
+    while (abs(delta_new / delta) >= 1e-3) {
         RMS = RMS_new;
+        delta = delta_new;
         int iteration = data.size() / batch_size;
         for (int i = 0; i < iteration; ++i) {
             for (int j = 0; j < batch_size; ++j) {
@@ -95,10 +101,11 @@ void decompose_CPU(stringstream& buffer,
                 }
             }
             RMS_new /= review_idx;
-            
+            RMS_new = sqrt(RMS_new);
+            cout << RMS_new << endl;
+            delta_new = RMS - RMS_new;
         }
         // getchar();
-        cout << RMS_new << endl;
         random_shuffle(data.begin(), data.end());
     }
     // cout << P * Q << endl;
