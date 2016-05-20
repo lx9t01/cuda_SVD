@@ -94,7 +94,7 @@ void decompose_CPU(stringstream& buffer,
             MatrixXf R_1 = P * Q;
             RMS_new = 0;
             for (int i = 0; i < num_users; ++i) {
-                for (int j = 0; j < num_tems; ++j) {
+                for (int j = 0; j < num_items; ++j) {
                     if (R(i, j) != 0) {
                         RMS_new += (R_1(i, j) - R(i, j)) * (R_1(i, j) - R(i, j));
                     // cout<< R_1(i,j)<<endl;
