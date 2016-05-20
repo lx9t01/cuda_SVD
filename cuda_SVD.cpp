@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
             (<number of users> <number of items> <number of dimensions f>)\n");
         return -1;
     }
-    const float gamma = 0.005;
+    const float gamma = 0.01;
     const float lamda = 0.001;
 
     ifstream infile_t(argv[1]);
