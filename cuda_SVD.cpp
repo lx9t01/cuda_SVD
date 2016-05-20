@@ -75,7 +75,7 @@ void decompose_CPU(stringstream& buffer,
         RMS_new = RMS;
     }
 
-    while (abs(delta_new / delta) >= 1e-3) {
+    while (abs(delta_new / delta) >= 1e-2) {
         cout << "stop condition: " << (delta_new / delta) << endl;
         RMS = RMS_new;
         delta = delta_new;
@@ -94,7 +94,7 @@ void decompose_CPU(stringstream& buffer,
             MatrixXf R_1 = P * Q;
             RMS_new = 0;
             for (int i = 0; i < num_users; ++i) {
-                for (int j = 0; j < num_items; ++j) {
+                for (int j = 0; j < num_tems; ++j) {
                     if (R(i, j) != 0) {
                         RMS_new += (R_1(i, j) - R(i, j)) * (R_1(i, j) - R(i, j));
                     // cout<< R_1(i,j)<<endl;
@@ -138,8 +138,8 @@ int main(int argc, char* argv[]) {
             (<number of users> <number of items> <number of dimensions f>)\n");
         return -1;
     }
-    const float gamma = 0.01;
-    const float lamda = 0.001;
+    const float gamma = 0.03;
+    const float lamda = 0.005;
 
     float time_initial, time_final;
     time_initial = clock();
