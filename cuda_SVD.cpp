@@ -76,9 +76,9 @@ void decompose_CPU(stringstream& buffer,
     }
 
     while (abs(delta_new / delta) >= 1e-3) {
+        cout << "stop condition: " << (delta_new / delta) << endl;
         RMS = RMS_new;
         delta = delta_new;
-        cout << "deltas: " << (delta_new / delta) << endl;
         int iteration = data.size() / batch_size;
         for (int i = 0; i < iteration; ++i) {
             for (int j = 0; j < batch_size; ++j) {
