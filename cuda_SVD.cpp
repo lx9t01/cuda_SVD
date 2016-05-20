@@ -78,7 +78,7 @@ void decompose_CPU(stringstream& buffer,
     while (abs(delta_new / delta) >= 1e-3) {
         RMS = RMS_new;
         delta = delta_new;
-        cout << delta_new / delta << endl;
+        cout << "deltas: " << delta_new / delta << endl;
         int iteration = data.size() / batch_size;
         for (int i = 0; i < iteration; ++i) {
             for (int j = 0; j < batch_size; ++j) {
@@ -103,7 +103,7 @@ void decompose_CPU(stringstream& buffer,
             }
             RMS_new /= review_idx;
             RMS_new = sqrt(RMS_new);
-            cout << RMS_new << endl;
+            cout << "RMS: " << RMS_new << endl;
             delta_new = RMS - RMS_new;
         }
         // getchar();
