@@ -42,8 +42,13 @@ void decompose_CPU(stringstream& buffer,
     for (string user_rate; getline(buffer, user_rate); ++review_idx) {
         int host_buffer[3];
         readData(user_rate, &host_buffer[0]);
+        host_buffer[0]--;
+        host_buffer[1]--;
         vector<int> line(begin(host_buffer), end(host_buffer));
         data.push_back(line);
+        // if(host_buffer[0]>=942)host_buffer[0]=942;
+        // if(host_buffer[1]>=1600)host_buffer[1]=1600;
+        // cout << host_buffer[0] << ' ' << host_buffer[1] << ' ' << host_buffer[2] << endl;
         R(host_buffer[0], host_buffer[1]) = host_buffer[2];
     }
     // for (auto it = data.begin(); it != data.end(); ++it) {
@@ -114,14 +119,14 @@ int main(int argc, char* argv[]) {
     if (argc == 3) {
         num_users = 943;
         num_items = 1682;
-        num_f = 50;
+        num_f = 30;
     } else if (argc == 6){
         num_users = atoi(argv[2]);
         num_items = atoi(argv[3]);
         num_f = atoi(argv[4]);
     } else {
         printf("./classify <path to training datafile> <patht to validation data file> \
-            <number of users> <number of items> <number of dimensions f>\n");
+            (<number of users> <number of items> <number of dimensions f>)\n");
         return -1;
     }
     const float gamma = 0.005;
