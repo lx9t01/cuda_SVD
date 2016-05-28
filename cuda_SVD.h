@@ -54,7 +54,12 @@ cudaEvent_t stop;
     gpuErrChk(cudaEventDestroy(stop));                      \
 }
 */
+
+
+
 // Fills output with standard normal data
+// input:  output (P or Q), dimension of row, dimension of column
+// output: output matrix (P or Q)
 void gaussianFill(MatrixXf &output, int size_row, int size_col) {
     // seed generator to 2015
     std::default_random_engine generator(2015);
@@ -67,6 +72,46 @@ void gaussianFill(MatrixXf &output, int size_row, int size_col) {
 }
 
 
+// write the output full rating matrix to a csv file
+void writeCSV(MatrixXf R, string filename) {
+    int r = R.rows();
+    int c = R.cols();
+    ofstream outputfile;
+    outputfile.open(filename);
+    for (int i = 0; i < r; ++i) {
+        for (int j = 0; j < c; ++j) {
+            outputfile << R(i,j) << ",";
+        }
+        outputfile << "\n";
+    }
+    outputfile.close();
+}
+
+
+// read one line of the training data
+// input:  str
+// output: output = {userID, itemID, rating}
+void readData(string str, int *output) {
+    stringstream stream(str);
+    int idx = 0;
+    for (string component; getline(stream, component, '\t'); ++idx) {
+        if (idx == 3) break;
+        output[idx] = atoi(component.c_str());
+    }
+    // assert(component_idx == 3);
+}
+
+// decompose the matrix with CPU
+/*input:  buffer: from the training data file
+          batch_size: read a batch from the input file
+          num_users: the total number of users
+          num_items: the total number of items (used to define matrix dimension)
+          num_f : the dimension of latent factors
+          step_size: training step size, set to 0.01
+          regulation : regulation term set to prevent overfitting, set to 0.005
+output:   the final trained model of rating matrix will be writteninto a CSV file
+*/
+           
 void decompose_CPU(stringstream& buffer, 
     int batch_size, 
     int num_users, 
