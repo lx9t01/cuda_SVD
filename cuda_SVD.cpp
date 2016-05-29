@@ -10,8 +10,12 @@ using namespace std;
 #define BATCH_SIZE 1000
 
 
-
-
+/*
+ the training of CPU PQ decomposition
+ because we want to terminate when the decrease of error is small enough, 
+ so we have to keep all the training data stored in a vector, and randomly shuffle
+ the data after each iteration.
+*/
 void decompose_CPU(stringstream& buffer, 
     int batch_size, 
     int num_users, 
@@ -25,20 +29,21 @@ void decompose_CPU(stringstream& buffer,
     MatrixXd R(num_users, num_items);
     gaussianFill(P, num_users, num_f);
     gaussianFill(Q, num_f, num_items);
-    vector< vector<int> > data = vector< vector<int> > ();
+    vector< vector<int> > data = vector< vector<int> > (); 
+    // create a vector to store all of training data
 
     int review_idx = 0;
     for (string user_rate; getline(buffer, user_rate); ++review_idx) {
         int host_buffer[3];
         readData(user_rate, &host_buffer[0]);
-        host_buffer[0]--;
+        host_buffer[0]--; // transform 1-based data to 0-based index
         host_buffer[1]--;
         vector<int> line(begin(host_buffer), end(host_buffer));
         data.push_back(line);
         // if(host_buffer[0]>=942)host_buffer[0]=942;
         // if(host_buffer[1]>=1600)host_buffer[1]=1600;
         // cout << host_buffer[0] << ' ' << host_buffer[1] << ' ' << host_buffer[2] << endl;
-        R(host_buffer[0], host_buffer[1]) = host_buffer[2];
+        R(host_buffer[0], host_buffer[1]) = host_buffer[2]; // record the rating
     }
     // for (auto it = data.begin(); it != data.end(); ++it) {
     //     cout << (*it)[0] << " "<<(*it)[1]<<" "<<(*it)[2]<<endl;
@@ -62,7 +67,7 @@ void decompose_CPU(stringstream& buffer,
         cout << RMS << endl;
         RMS_new = RMS;
     }
-    MatrixXf R_1;
+    MatrixXf R_1; // create the updated matrix
 
     /*
     stop condition is the realtive decrease in error: when the ratio of 
@@ -108,6 +113,32 @@ void decompose_CPU(stringstream& buffer,
 
 }
 
+void decompose_CPU(stringstream& buffer, 
+    int batch_size, 
+    int num_users, 
+    int num_items, 
+    int num_f, 
+    float step_size, 
+    float regulation) {
+
+    // MatrixXf P(num_users, num_f);
+    // MatrixXf Q(num_f, num_items);
+    // MatrixXd R(num_users, num_items);
+    // gaussianFill(P, num_users, num_f);
+    // gaussianFill(Q, num_f, num_items);
+    Matrix3f test;
+    test << 1,2,3,4,5,6,7,8,9;
+    float *t = test.data();
+    for (int i = 0; i < 9; ++i) {
+        cout << t[i] << " ";
+    }
+
+
+}
+
+
+
+
 int main(int argc, char* argv[]) {
     int num_users;
     int num_items;
@@ -139,14 +170,15 @@ int main(int argc, char* argv[]) {
     buffer1 << infile_t.rdbuf();
     buffer2 << infile_v.rdbuf();
 
-    decompose_CPU(buffer1, BATCH_SIZE, num_users, num_items, num_f, gamma, lamda);
-
+    // decompose_CPU(buffer1, BATCH_SIZE, num_users, num_items, num_f, gamma, lamda);
+    
     time_final = clock();
     printf("Total time to run classify on CPU: %f (s)\n", (time_final - time_initial) / CLOCKS_PER_SEC);
     // end of CPU decomposition
 
     // GPU decomposition
 
+    decompose_GPU(buffer1, BATCH_SIZE, num_users, num_items, num_f, gamma, lamda);
     // end of GPU decomposition
 
 

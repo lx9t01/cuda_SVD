@@ -14,15 +14,21 @@
 #include <iterator>
 
 #include <eigen3/Eigen/Dense>
+
+#include <cuda_runtime.h>
+#include "cuda_SVD.cuh"
+
 using namespace Eigen;
 using namespace std;
+
+
 /*
 gpuErrChk
 Modified from:
 http://stackoverflow.com/questions/14038589/
 what-is-the-canonical-way-to-check-for-errors-using-the-cuda-runtime-api
 */
-/*
+
 #define gpuErrChk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(
     cudaError_t code,
@@ -53,8 +59,6 @@ cudaEvent_t stop;
     gpuErrChk(cudaEventDestroy(start));                     \
     gpuErrChk(cudaEventDestroy(stop));                      \
 }
-*/
-
 
 
 // Fills output with standard normal data
@@ -109,9 +113,8 @@ void readData(string str, int *output) {
           num_f : the dimension of latent factors
           step_size: training step size, set to 0.01
           regulation : regulation term set to prevent overfitting, set to 0.005
-output:   the final trained model of rating matrix will be writteninto a CSV file
-*/
-           
+output:   void; the final trained model of rating matrix will be writteninto a CSV file
+*/  
 void decompose_CPU(stringstream& buffer, 
     int batch_size, 
     int num_users, 
@@ -120,5 +123,22 @@ void decompose_CPU(stringstream& buffer,
     float step_size, 
     float regualtion);
 
+// decompose the matrix with GPU (as an interface between stream, same as CPU)
+/*input:  buffer: from the training data file
+          batch_size: read a batch from the input file
+          num_users: the total number of users
+          num_items: the total number of items (used to define matrix dimension)
+          num_f : the dimension of latent factors
+          step_size: training step size, set to 0.01
+          regulation : regulation term set to prevent overfitting, set to 0.005
+output:   void; the final trained model of rating matrix will be writteninto a CSV file
+*/  
+void decompose_GPU(stringstream& buffer,
+    int batch_size,
+    int num_users,
+    int num_items,
+    int num_f,
+    float step_size,
+    float regulation);
 
 #endif
