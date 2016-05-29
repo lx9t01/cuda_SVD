@@ -39,7 +39,7 @@ endif
 all: $(EXENAME)
 
 $(EXENAME): cuda_SVD.cpp cuda_SVD.o
-	$(CC) $< -std=c++11 -o $@ classify.o -O3 $(LDFLAGS) -Wall -I$(CUDA_INC_PATH)
+	$(CC) $< -std=c++11 -o $@ classify.o -O3 $(LDFLAGS) -Wall -I$(CUDA_INC_PATH) $(INCLUDES)
 
 cuda_SVD.o: cuda_SVD.cu
 	$(NVCC) $(NVCCFLAGS) -O3 $(EXTRA_NVCCFLAGS) $(GENCODE_FLAGS) -I$(CUDA_INC_PATH) -o $@ -c $<
