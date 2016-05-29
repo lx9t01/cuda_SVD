@@ -110,10 +110,9 @@ void decompose_CPU(stringstream& buffer,
     }
     printf("Training complete, writing result rating matrix to CSV....\n");
     writeCSV(R_1, "output_CPU.csv");
-
 }
 
-void decompose_CPU(stringstream& buffer, 
+void decompose_GPU(stringstream& buffer, 
     int batch_size, 
     int num_users, 
     int num_items, 
@@ -121,17 +120,94 @@ void decompose_CPU(stringstream& buffer,
     float step_size, 
     float regulation) {
 
-    // MatrixXf P(num_users, num_f);
-    // MatrixXf Q(num_f, num_items);
-    // MatrixXd R(num_users, num_items);
-    // gaussianFill(P, num_users, num_f);
-    // gaussianFill(Q, num_f, num_items);
-    Matrix3f test;
-    test << 1,2,3,4,5,6,7,8,9;
-    float *t = test.data();
-    for (int i = 0; i < 9; ++i) {
-        cout << t[i] << " ";
+    MatrixXf P(num_users, num_f);
+    MatrixXf Q(num_f, num_items);
+    MatrixXd R(num_users, num_items);
+    gaussianFill(P, num_users, num_f);
+    gaussianFill(Q, num_f, num_items);
+    
+    vector< vector<int> > data_GPU = vector< vector<int> > (); 
+    // create a vector to store all of training data
+
+    int review_idx = 0;
+    for (string user_rate; getline(buffer, user_rate); ++review_idx) {
+        int host_buffer[3];
+        readData(user_rate, &host_buffer[0]);
+        host_buffer[0]--; // transform 1-based data to 0-based index
+        host_buffer[1]--;
+        vector<int> line(begin(host_buffer), end(host_buffer));
+        data_GPU.push_back(line);
+        R(host_buffer[0], host_buffer[1]) = host_buffer[2]; // record the rating
     }
+
+    float RMS = 0;
+    float RMS_new = 0;
+    float delta = 1;
+    float delta_new = 1;
+
+    // transform the code below to a find_RMS kernel in GPU
+    /*
+    {
+        MatrixXf R_1 = P * Q;
+        for (int i = 0; i < num_users; ++i) {
+            for (int j = 0; j < num_items; ++j) {
+                if (R(i, j) != 0) {
+                    RMS += (R_1(i, j) - R(i, j)) * (R_1(i, j) - R(i, j));
+                }
+            }
+        }
+        RMS /= review_idx;
+        RMS = sqrt(RMS);
+        cout << RMS << endl;
+        RMS_new = RMS;
+    }
+    */
+    const unsigned int blocks = 64;
+    const unsigned int threadsPerBlock = 64;
+
+    {
+        MatrixXf R1 = P * Q;
+        float *R0 = R.data(); // host data of R
+        float *R1 = R1.data();
+        float *dev_R0;
+        float *dev_R1;
+
+        cudaMalloc((void**) &dev_R0, sizeof(float) * num_users * num_items);
+        cudaMalloc((void**) &dev_R1, sizeof(float) * num_users * num_items);
+        cudaMemcpy(dev_R0, R0, sizeof(float) * num_users * num_items);
+        cudaMemcpy(dev_R1, R1, sizeof(float) * num_items * num_items);
+        RMS = cudaCallFindRMSKernel(blocks, threadsPerBlock, dev_R0, dev_R1, num_users, num_items);
+        RMS /= review_idx;
+        RMS = sqrt(RMS);
+        cout << "GPU RMS: " << RMS << endl;
+        RMS_new = RMS;
+
+        while (delta_new / delta >= 0.05) {
+            cout << "stop condition GPU: " << (delta_new / delta) << endl;
+            RMS = RMS_new;
+            delta = delta_new;
+            int iteration = data_GPU.size() / batch_size;
+
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+        cudaFree(dev_R0);
+        cudaFree(dev_R1);
+    }
+    
+
+
+
 
 
 }
@@ -171,7 +247,7 @@ int main(int argc, char* argv[]) {
     buffer2 << infile_v.rdbuf();
 
     // decompose_CPU(buffer1, BATCH_SIZE, num_users, num_items, num_f, gamma, lamda);
-    
+
     time_final = clock();
     printf("Total time to run classify on CPU: %f (s)\n", (time_final - time_initial) / CLOCKS_PER_SEC);
     // end of CPU decomposition

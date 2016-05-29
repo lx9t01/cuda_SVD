@@ -102,7 +102,6 @@ void readData(string str, int *output) {
         if (idx == 3) break;
         output[idx] = atoi(component.c_str());
     }
-    // assert(component_idx == 3);
 }
 
 // decompose the matrix with CPU
