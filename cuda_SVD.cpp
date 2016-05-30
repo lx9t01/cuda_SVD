@@ -166,9 +166,9 @@ void decompose_GPU(stringstream& buffer,
     const unsigned int threadsPerBlock = 64;
 
     {
-        MatrixXf R1 = P * Q;
+        MatrixXf R_1 = P * Q;
         float *R0 = R.data(); // host data of R
-        float *R1 = R1.data();
+        float *R1 = R_1.data();
         float *dev_R0;
         float *dev_R1;
 
