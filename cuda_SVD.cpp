@@ -73,7 +73,7 @@ void decompose_CPU(stringstream& buffer,
     stop condition is the realtive decrease in error: when the ratio of 
     previous decrease in error to current decrease in error is less than 0.05
     */
-    while (delta_new / delta >= 0.05) {
+    while (delta_new / delta >= 0.02) {
         cout << "stop condition: " << (delta_new / delta) << endl;
         RMS = RMS_new;
         delta = delta_new;
@@ -182,7 +182,7 @@ void decompose_GPU(stringstream& buffer,
         cout << "GPU RMS: " << RMS << endl;
         RMS_new = RMS;
 
-        while (delta_new / delta >= 0.05) {
+        while (delta_new / delta >= 0.02) {
             cout << "stop condition GPU: " << (delta_new / delta) << endl;
             RMS = RMS_new;
             delta = delta_new;
