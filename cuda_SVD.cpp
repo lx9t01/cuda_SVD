@@ -187,7 +187,7 @@ void decompose_GPU(stringstream& buffer,
             RMS = RMS_new;
             delta = delta_new;
             int iteration = data_GPU.size() / batch_size;
-
+            getchar();
         }
 
 
@@ -254,7 +254,7 @@ int main(int argc, char* argv[]) {
 
     // GPU decomposition
 
-    // decompose_GPU(buffer1, BATCH_SIZE, num_users, num_items, num_f, gamma, lamda);
+    decompose_GPU(buffer1, BATCH_SIZE, num_users, num_items, num_f, gamma, lamda);
     // end of GPU decomposition
 
 
