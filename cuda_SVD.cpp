@@ -174,8 +174,8 @@ void decompose_GPU(stringstream& buffer,
 
         cudaMalloc((void**) &dev_R0, sizeof(float) * num_users * num_items);
         cudaMalloc((void**) &dev_R1, sizeof(float) * num_users * num_items);
-        cudaMemcpy(dev_R0, R0, sizeof(float) * num_users * num_items);
-        cudaMemcpy(dev_R1, R1, sizeof(float) * num_items * num_items);
+        cudaMemcpy(dev_R0, R0, sizeof(float) * num_users * num_items, cudaMemcpyHostToDevice);
+        cudaMemcpy(dev_R1, R1, sizeof(float) * num_items * num_items, cudaMemcpyHostToDevice);
         RMS = cudaCallFindRMSKernel(blocks, threadsPerBlock, dev_R0, dev_R1, num_users, num_items);
         RMS /= review_idx;
         RMS = sqrt(RMS);
