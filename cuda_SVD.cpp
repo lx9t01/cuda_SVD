@@ -26,7 +26,7 @@ void decompose_CPU(stringstream& buffer,
     MatrixXf P(num_users, num_f);
     MatrixXf Q(num_f, num_items);
 
-    MatrixXd R(num_users, num_items);
+    MatrixXf R(num_users, num_items);
     gaussianFill(P, num_users, num_f);
     gaussianFill(Q, num_f, num_items);
     vector< vector<int> > data = vector< vector<int> > (); 
@@ -122,7 +122,7 @@ void decompose_GPU(stringstream& buffer,
 
     MatrixXf P(num_users, num_f);
     MatrixXf Q(num_f, num_items);
-    MatrixXd R(num_users, num_items);
+    MatrixXf R(num_users, num_items);
     gaussianFill(P, num_users, num_f);
     gaussianFill(Q, num_f, num_items);
     
