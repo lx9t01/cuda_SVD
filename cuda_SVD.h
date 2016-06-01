@@ -75,6 +75,18 @@ void gaussianFill(MatrixXf &output, int size_row, int size_col) {
     }
 }
 
+// Fills output with standard normal data
+// input:  output (P or Q), dimension of row, dimension of column
+// output: output matrix (P or Q)
+void gaussianFill(float* output, int size_row, int size_col) {
+    // seed generator to 2015
+    std::default_random_engine generator(2015);
+    std::normal_distribution<float> distribution(0.0, 0.1);
+    for (int i=0; i < size_row * size_col; ++i) {
+        output[i] = distribution(generator);
+    }
+}
+
 
 // write the output full rating matrix to a csv file
 void writeCSV(MatrixXf R, string filename) {
