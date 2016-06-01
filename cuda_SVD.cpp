@@ -91,11 +91,13 @@ void decompose_CPU(stringstream& buffer,
             }
             R_1 = P * Q;
             RMS_new = 0;
+            // this piece of code is used to compute root mean square
+            // value of rating matrix error,
+            // will be replaced with a GPU kerne;
             for (int i = 0; i < num_users; ++i) {
                 for (int j = 0; j < num_items; ++j) {
                     if (R(i, j) != 0) {
                         RMS_new += (R_1(i, j) - R(i, j)) * (R_1(i, j) - R(i, j));
-                    // cout<< R_1(i,j)<<endl;
                     }
                 }
             }
@@ -145,23 +147,6 @@ void decompose_GPU(stringstream& buffer,
     float delta = 1;
     float delta_new = 1;
 
-    // transform the code below to a find_RMS kernel in GPU
-    /*
-    {
-        MatrixXf R_1 = P * Q;
-        for (int i = 0; i < num_users; ++i) {
-            for (int j = 0; j < num_items; ++j) {
-                if (R(i, j) != 0) {
-                    RMS += (R_1(i, j) - R(i, j)) * (R_1(i, j) - R(i, j));
-                }
-            }
-        }
-        RMS /= review_idx;
-        RMS = sqrt(RMS);
-        cout << RMS << endl;
-        RMS_new = RMS;
-    }
-    */
     const unsigned int blocks = 64;
     const unsigned int threadsPerBlock = 64;
 
