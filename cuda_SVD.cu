@@ -13,6 +13,7 @@ void cudaFindRMSKernel(
 		if (dev_R0[thread_idx] != 0) {
 			atomicAdd(dev_sum, (dev_R0[thread_idx]-dev_R1[thread_idx])*(dev_R0[thread_idx]-dev_R1[thread_idx]));
 		}
+		__syncthreads();
 		thread_idx += blockDim.x * gridDim.x;
 	}
 
