@@ -210,11 +210,11 @@ void decompose_GPU(stringstream& buffer,
                 // copy batches of training data into GPU
                 // vector<int> temp = data_GPU[i * batch_size];
                 // cout<< temp[0] << " " << temp[1] << " " << temp[2] <<endl;
-                gpuErrchk(cudaMemcpy(dev_data, &(data_GPU[i * batch_size])[0], sizeof(int) * 3 * batch_size, cudaMemcpyHostToDevice));
+                gpuErrChk(cudaMemcpy(dev_data, &(data_GPU[i * batch_size])[0], sizeof(int) * 3 * batch_size, cudaMemcpyHostToDevice));
             
                 // test
                 int* test0 = (int*)malloc(sizeof(int) * 3 * batch_size);
-                gpuErrchk(cudaMemcpy(test0, dev_data, sizeof(int) * 3 * batch_size, cudaMemcpyDeviceToHost));
+                gpuErrChk(cudaMemcpy(test0, dev_data, sizeof(int) * 3 * batch_size, cudaMemcpyDeviceToHost));
                 for (int j = 0; j < batch_size; ++j) {
                     for (int k = 0; k < 3; ++k) {
                         printf("%d ", test0[3 * j + k]);
