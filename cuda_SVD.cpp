@@ -130,7 +130,7 @@ void decompose_GPU(stringstream& buffer,
 
     gaussianFill(host_P, num_users, num_f);
     gaussianFill(host_Q, num_f, num_items);
-    memset(host_R, 0, sizeof(float) * num_users * num_items)
+    memset(host_R, 0, sizeof(float) * num_users * num_items);
     
     vector< vector<int> > data_GPU = vector< vector<int> > (); 
 
@@ -161,7 +161,7 @@ void decompose_GPU(stringstream& buffer,
 
         float *dev_Q;
         cudaMalloc((void**) &dev_Q, sizeof(float) * num_f * num_items);
-        cudaMemcpy(dev_Q, host_Q, sizeof(float) * num_f * num_items);
+        cudaMemcpy(dev_Q, host_Q, sizeof(float) * num_f * num_items, cudaMemcpyHostToDevice);
 
         // the correct R matrix
         float *dev_R0;
