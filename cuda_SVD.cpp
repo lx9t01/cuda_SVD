@@ -135,7 +135,6 @@ void decompose_GPU(stringstream& buffer,
     // vector< vector<int> > data_GPU = vector< vector<int> > (); 
 
     int review_idx = 0;
-    stringstream buffer1 = buffer; // make a copy of the beginning of buffer
 
     for (string user_rate; getline(buffer, user_rate); ++review_idx) {
         int host_buffer[3];
@@ -147,6 +146,7 @@ void decompose_GPU(stringstream& buffer,
         cout << host_buffer[0] * num_items + host_buffer[1] << " " << host_buffer[2] << endl;
         host_R[ host_buffer[0] * num_items + host_buffer[1] ] = host_buffer[2]; // read in the R data
     }
+    buffer.clear();
 
     float RMS = 0;
     // float RMS_new = 0;
@@ -156,7 +156,7 @@ void decompose_GPU(stringstream& buffer,
     const unsigned int blocks = 64;
     const unsigned int threadsPerBlock = 64;
 
-    for (string user_rate; getline(buffer1, user_rate); ) {
+    for (string user_rate; getline(buffer, user_rate); ) {
         int host_buffer[3];
         readData(user_rate, &host_buffer[0]);
         host_buffer[0]--;
