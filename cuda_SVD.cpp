@@ -155,8 +155,9 @@ void decompose_GPU(stringstream& buffer,
         readData(user_rate, &host_buffer[3 * idx]);
         host_buffer[3 * idx]--; // the user and item are 1 indexed, in the matrix it should be 0 indexed
         host_buffer[3 * idx + 1]--;
-        cout << host_buffer[3 * idx] << " " << host_buffer[3 * idx + 1] << " " << host_buffer[3 * idx + 2] << endl;
         if (idx == batch_size - 1) { // the buffer is full
+            cout << idx << " " << host_buffer[3 * idx] << " " << host_buffer[3 * idx + 1] << " " << host_buffer[3 * idx + 2] << endl;
+
             gpuErrChk(cudaMemcpy(dev_data, host_buffer, sizeof(int) * 3 * batch_size, cudaMemcpyHostToDevice));
             cudaCallTrainingKernel(blocks, 
                     threadsPerBlock, 
@@ -169,20 +170,12 @@ void decompose_GPU(stringstream& buffer,
                     num_items,
                     num_f,
                     batch_size);
-            
-            // cudaCallMultiplyKernel(blocks, 
-            //         threadsPerBlock, 
-            //         dev_P, 
-            //         dev_Q, 
-            //         dev_R1, 
-            //         num_users, 
-            //         num_items, 
-            //         num_f);
+            gpuErrChk(cudaMemcpy(host_P, dev_P, sizeof(float) * num_users * num_f, cudaMemcpyDeviceToHost));
+            for (int i = 0; i < num_f; ++i) {
+                cout << host_P[i] << " " << endl;
+            }
             
         }
-        // vector<int> line(begin(host_buffer), end(host_buffer));
-        // data_GPU.push_back(line);
-        // cout << host_buffer[0] * num_items + host_buffer[1] << " " << host_buffer[2] << endl;
         host_R[ host_buffer[3 * idx] * num_items + host_buffer[3 * idx + 1] ] = host_buffer[3 * idx + 2]; // read in the R data
     }
 
