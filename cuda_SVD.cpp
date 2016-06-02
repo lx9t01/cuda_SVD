@@ -240,8 +240,8 @@ void decompose_GPU(stringstream& buffer,
                 num_items, 
                 num_f);
 
-            float *temp;
-            cudaMalloc((void**) &temp, sizeof(float) * num_users * num_items);
+            float *temp = (float*)malloc(sizeof(float) * num_users * num_items);
+
             cudaMemcpy(temp, dev_R1, sizeof(float) * num_users * num_items, cudaMemcpyDeviceToHost);
             printf("calculated: %f\n", temp[0]);
             printf("host_R correct: %f\n", host_R[0]);
