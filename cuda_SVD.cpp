@@ -222,6 +222,9 @@ void decompose_GPU(stringstream& buffer,
     RMS /= review_idx;
     RMS = sqrt(RMS);
     cout << "GPU RMS: " << RMS << endl;
+    
+    float *host_R_1 = (float*)malloc(sizeof(float) * num_users * num_items); 
+    cudaMemcpy(host_R_1, dev_R1, sizeof(float) * num_users * num_items, cudaMemcpyDeviceToHost);
     printf("Training complete in GPU, writing result rating matrix to CSV....\n");
     writeCSV(host_R_1, num_users, num_items, "output_GPU.csv");
 
