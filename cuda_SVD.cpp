@@ -224,7 +224,7 @@ void decompose_GPU(stringstream& buffer,
                     num_f,
                     batch_size);
                 
-                getchar();
+                // getchar();
             }
 
             // call R_1 = P * Q after training in a batch
