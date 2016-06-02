@@ -239,8 +239,12 @@ void decompose_GPU(stringstream& buffer,
                 num_users, 
                 num_items, 
                 num_f);
-            cudaMemcpy(host_R, dev_R1, sizeof(float) * num_users * num_items, cudaMemcpyDeviceToHost);
-            printf("host_R: %f\n", host_R[0]);
+
+            float *temp;
+            cudaMalloc((void**) &temp, sizeof(float) * num_users * num_items);
+            cudaMemcpy(temp, dev_R1, sizeof(float) * num_users * num_items, cudaMemcpyDeviceToHost);
+            printf("calculated: %f\n", temp[0]);
+            printf("host_R correct: %f\n", host_R[0]);
 
             RMS_new = cudaCallFindRMSKernel(blocks, 
                 threadsPerBlock, 
