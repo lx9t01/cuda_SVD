@@ -210,7 +210,7 @@ void decompose_GPU(stringstream& buffer,
                 // copy batches of training data into GPU
                 vector<int> temp = data_GPU[i * batch_size];
                 cout<< temp[0] << " " << temp[1] << " " << temp[2] <<endl;
-                cudaMemcpy(dev_data, data_GPU[i * batch_size], sizeof(int) * 3 * batch_size, cudaMemcpyHostToDevice);
+                cudaMemcpy(dev_data, &(data_GPU[i * batch_size])[0], sizeof(int) * 3 * batch_size, cudaMemcpyHostToDevice);
             
                 cudaCallTrainingKernel(blocks, 
                     threadsPerBlock, 
@@ -253,7 +253,7 @@ void decompose_GPU(stringstream& buffer,
             cout << "delta_new: " << delta_new << endl;
 
             getchar();
-            random_shuffle(data.begin(), data.end());
+            random_shuffle(data_GPU.begin(), data_GPU.end());
         }
         float *host_R_1 = (float*)malloc(sizeof(float) * num_users * num_items); 
         cudaMemcpy(host_R_1, dev_R1, sizeof(float) * num_users * num_items, cudaMemcpyDeviceToHost);
