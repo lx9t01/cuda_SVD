@@ -227,6 +227,9 @@ void decompose_GPU(stringstream& buffer,
                 // getchar();
             }
 
+            cudaMemcpy(host_P, dev_P, sizeof(float) * num_users * num_f, cudaMemcpyDeviceToHost);
+            printf("%f\n", host_P[0]);
+
             // call R_1 = P * Q after training in a batch
             cudaCallMultiplyKernel(blocks, 
                 threadsPerBlock, 
