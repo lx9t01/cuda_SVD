@@ -153,7 +153,7 @@ void decompose_GPU(stringstream& buffer,
     const unsigned int blocks = 64;
     const unsigned int threadsPerBlock = 64;
 
-    {
+    
         // copy P and Q matrix into GPU
         float *dev_P;
         cudaMalloc((void**) &dev_P, sizeof(float) * num_users * num_f);
@@ -208,10 +208,20 @@ void decompose_GPU(stringstream& buffer,
 
             for (int i = 0; i < iteration; ++i) {
                 // copy batches of training data into GPU
-                vector<int> temp = data_GPU[i * batch_size];
-                cout<< temp[0] << " " << temp[1] << " " << temp[2] <<endl;
-                cudaMemcpy(dev_data, &(data_GPU[i * batch_size])[0], sizeof(int) * 3 * batch_size, cudaMemcpyHostToDevice);
+                // vector<int> temp = data_GPU[i * batch_size];
+                // cout<< temp[0] << " " << temp[1] << " " << temp[2] <<endl;
+                gpuErrchk(cudaMemcpy(dev_data, &(data_GPU[i * batch_size])[0], sizeof(int) * 3 * batch_size, cudaMemcpyHostToDevice));
             
+                // test
+                int* test0 = (int*)malloc(sizeof(int) * 3 * batch_size);
+                gpuErrchk(cudaMemcpy(test0, dev_data, sizeof(int) * 3 * batch_size, cudaMemcpyDeviceToHost));
+                for (int j = 0; j < batch_size; ++j) {
+                    for (int k = 0; k < 3; ++k) {
+                        printf("%d ", test0[3 * j + k]);
+                    }
+                    printf("\n");
+                }
+
                 cudaCallTrainingKernel(blocks, 
                     threadsPerBlock, 
                     dev_data, 
@@ -224,7 +234,7 @@ void decompose_GPU(stringstream& buffer,
                     num_f,
                     batch_size);
                 
-                // getchar();
+                getchar();
             }
 
             cudaMemcpy(host_P, dev_P, sizeof(float) * num_users * num_f, cudaMemcpyDeviceToHost);
@@ -280,7 +290,7 @@ void decompose_GPU(stringstream& buffer,
         cudaFree(dev_R0);
         cudaFree(dev_R1);
         free(host_R_1);
-    }
+    
 }
 
 
