@@ -132,28 +132,38 @@ void decompose_GPU(stringstream& buffer,
     gaussianFill(host_Q, num_f, num_items);
     memset(host_R, 0, sizeof(float) * num_users * num_items);
     
-    vector< vector<int> > data_GPU = vector< vector<int> > (); 
+    // vector< vector<int> > data_GPU = vector< vector<int> > (); 
 
     int review_idx = 0;
+    stringstream buffer1 = buffer; // make a copy of the beginning of buffer
+
     for (string user_rate; getline(buffer, user_rate); ++review_idx) {
         int host_buffer[3];
         readData(user_rate, &host_buffer[0]);
-        host_buffer[0]--; 
+        host_buffer[0]--; // the user and item are 1 indexed, in the matrix it should be 0 indexed
         host_buffer[1]--;
-        vector<int> line(begin(host_buffer), end(host_buffer));
-        data_GPU.push_back(line);
+        // vector<int> line(begin(host_buffer), end(host_buffer));
+        // data_GPU.push_back(line);
+        cout << host_buffer[0] * num_items + host_buffer[1] << " " << host_buffer[2] << endl;
         host_R[ host_buffer[0] * num_items + host_buffer[1] ] = host_buffer[2]; // read in the R data
     }
 
     float RMS = 0;
-    float RMS_new = 0;
-    float delta = 1;
-    float delta_new = 1;
+    // float RMS_new = 0;
+    // float delta = 1;
+    // float delta_new = 1;
 
     const unsigned int blocks = 64;
     const unsigned int threadsPerBlock = 64;
 
-    
+    for (string user_rate; getline(buffer1, user_rate); ) {
+        int host_buffer[3];
+        readData(user_rate, &host_buffer[0]);
+        host_buffer[0]--;
+        host_buffer[1]--;
+        cout << "new " << host_buffer[0] * num_items + host_buffer[1] << " " << host_buffer[2] << endl;
+    }
+    /*
         // copy P and Q matrix into GPU
         float *dev_P;
         cudaMalloc((void**) &dev_P, sizeof(float) * num_users * num_f);
@@ -290,7 +300,7 @@ void decompose_GPU(stringstream& buffer,
         cudaFree(dev_R0);
         cudaFree(dev_R1);
         free(host_R_1);
-    
+    */
 }
 
 
