@@ -98,7 +98,7 @@ float cudaCallFindRMSKernel(const unsigned int blocks,
         num_users * num_items);
     float host_sum = -1;
     cudaMemcpy(&host_sum, dev_sum, sizeof(float), cudaMemcpyDeviceToHost);
-    printf("dev_sum: %f\n", &host_sum);
+    printf("dev_sum: %f\n", host_sum);
     cudaFree(dev_sum);
     return host_sum;
 }
