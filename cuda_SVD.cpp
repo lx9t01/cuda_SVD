@@ -135,80 +135,98 @@ void decompose_GPU(stringstream& buffer,
     // vector< vector<int> > data_GPU = vector< vector<int> > (); 
 
     int review_idx = 0;
+    const unsigned int blocks = 64;
+    const unsigned int threadsPerBlock = 64;
 
-    for (string user_rate; getline(buffer, user_rate); ++review_idx) {
-        int host_buffer[3];
-        readData(user_rate, &host_buffer[0]);
-        host_buffer[0]--; // the user and item are 1 indexed, in the matrix it should be 0 indexed
-        host_buffer[1]--;
-        // vector<int> line(begin(host_buffer), end(host_buffer));
-        // data_GPU.push_back(line);
-        cout << host_buffer[0] * num_items + host_buffer[1] << " " << host_buffer[2] << endl;
-        host_R[ host_buffer[0] * num_items + host_buffer[1] ] = host_buffer[2]; // read in the R data
-    }
-    buffer.clear();
+    float *dev_P;
+    cudaMalloc((void**) &dev_P, sizeof(float) * num_users * num_f);
+    cudaMemcpy(dev_P, host_P, sizeof(float) * num_users * num_f, cudaMemcpyHostToDevice);
+
+    float *dev_Q;
+    cudaMalloc((void**) &dev_Q, sizeof(float) * num_f * num_items);
+    cudaMemcpy(dev_Q, host_Q, sizeof(float) * num_f * num_items, cudaMemcpyHostToDevice);
+
+    int *host_buffer = (int*) malloc(3 * batch_size);
+    int *dev_data; 
+    cudaMalloc((void**) &dev_data, sizeof(int) * 3 * batch_size);
+
+    float *dev_R1;
+    cudaMalloc((void**) &dev_R1, sizeof(float) * num_users * num_items);
+    cudaMemset(dev_R1, 0, sizeof(float) * num_users * num_items);
 
     float RMS = 0;
     // float RMS_new = 0;
     // float delta = 1;
     // float delta_new = 1;
 
-    const unsigned int blocks = 64;
-    const unsigned int threadsPerBlock = 64;
-
-    for (string user_rate; getline(buffer, user_rate); ) {
-        int host_buffer[3];
-        readData(user_rate, &host_buffer[0]);
-        host_buffer[0]--;
-        host_buffer[1]--;
-        cout << "new " << host_buffer[0] * num_items + host_buffer[1] << " " << host_buffer[2] << endl;
+    for (string user_rate; getline(buffer, user_rate); ++review_idx) {
+        int idx = review_idx % batch_size;
+        readData(user_rate, &host_buffer[3 * idx]);
+        host_buffer[3 * idx]--; // the user and item are 1 indexed, in the matrix it should be 0 indexed
+        host_buffer[3 * idx + 1]--;
+        if (idx == batch_size - 1) { // the buffer is full
+            gpuErrChk(cudaMemcpy(dev_data, host_buffer, sizeof(int) * 3 * batch_size, cudaMemcpyHostToDevice));
+            cudaCallTrainingKernel(blocks, 
+                    threadsPerBlock, 
+                    dev_data, 
+                    dev_P, 
+                    dev_Q, 
+                    step_size,
+                    regulation,
+                    num_users,
+                    num_items,
+                    num_f,
+                    batch_size);
+            getchar();
+            // cudaCallMultiplyKernel(blocks, 
+            //         threadsPerBlock, 
+            //         dev_P, 
+            //         dev_Q, 
+            //         dev_R1, 
+            //         num_users, 
+            //         num_items, 
+            //         num_f);
+            
+        }
+        // vector<int> line(begin(host_buffer), end(host_buffer));
+        // data_GPU.push_back(line);
+        // cout << host_buffer[0] * num_items + host_buffer[1] << " " << host_buffer[2] << endl;
+        host_R[ host_buffer[0] * num_items + host_buffer[1] ] = host_buffer[2]; // read in the R data
     }
+
+    
+    // the correct R matrix
+    float *dev_R0;
+    cudaMalloc((void**) &dev_R0, sizeof(float) * num_users * num_items); 
+    cudaMemcpy(dev_R0, host_R, sizeof(float) * num_users * num_items, cudaMemcpyHostToDevice);
+
+    
+
+    // multiply P and Q in GPU, results stored in dev_R1
+    cudaCallMultiplyKernel(blocks, 
+        threadsPerBlock, 
+        dev_P, 
+        dev_Q, 
+        dev_R1, 
+        num_users, 
+        num_items, 
+        num_f);
+    // compare the RMS loss between dev_R0 and dev_R1
+    RMS = cudaCallFindRMSKernel(blocks, 
+        threadsPerBlock, 
+        dev_R0, 
+        dev_R1, 
+        num_users, 
+        num_items);
+    cout << "GPU SUM of RMS: " << RMS << endl;
+    RMS /= review_idx;
+    RMS = sqrt(RMS);
+    cout << "GPU RMS: " << RMS << endl;
+    printf("Training complete in GPU, writing result rating matrix to CSV....\n");
+    writeCSV(host_R_1, num_users, num_items, "output_GPU.csv");
+
     /*
-        // copy P and Q matrix into GPU
-        float *dev_P;
-        cudaMalloc((void**) &dev_P, sizeof(float) * num_users * num_f);
-        cudaMemcpy(dev_P, host_P, sizeof(float) * num_users * num_f, cudaMemcpyHostToDevice);
-
-        float *dev_Q;
-        cudaMalloc((void**) &dev_Q, sizeof(float) * num_f * num_items);
-        cudaMemcpy(dev_Q, host_Q, sizeof(float) * num_f * num_items, cudaMemcpyHostToDevice);
-
-        // the correct R matrix
-        float *dev_R0;
-        cudaMalloc((void**) &dev_R0, sizeof(float) * num_users * num_items); 
-        cudaMemcpy(dev_R0, host_R, sizeof(float) * num_users * num_items, cudaMemcpyHostToDevice);
-
-
-        float *dev_R1;
-        cudaMalloc((void**) &dev_R1, sizeof(float) * num_users * num_items);
-        cudaMemset(dev_R1, 0, sizeof(float) * num_users * num_items);
-
-        // multiply P and Q in GPU, results stored in dev_R1
-        cudaCallMultiplyKernel(blocks, 
-            threadsPerBlock, 
-            dev_P, 
-            dev_Q, 
-            dev_R1, 
-            num_users, 
-            num_items, 
-            num_f);
-
-        // compare the RMS loss between dev_R0 and dev_R1
-        RMS = cudaCallFindRMSKernel(blocks, 
-            threadsPerBlock, 
-            dev_R0, 
-            dev_R1, 
-            num_users, 
-            num_items);
-        cout << "GPU SUM of RMS: " << RMS << endl;
-        RMS /= review_idx;
-        RMS = sqrt(RMS);
-        cout << "GPU RMS: " << RMS << endl;
-        RMS_new = RMS;
-
-        // allocating training data in the GPU
-        int* dev_data;
-        cudaMalloc((void**) &dev_data, sizeof(int) * 3 * batch_size);
+        
 
         while (delta_new / delta >= 0.02) {
             cout << "stop condition GPU: " << (delta_new / delta) << endl;
@@ -232,17 +250,7 @@ void decompose_GPU(stringstream& buffer,
                     printf("\n");
                 }
 
-                cudaCallTrainingKernel(blocks, 
-                    threadsPerBlock, 
-                    dev_data, 
-                    dev_P, 
-                    dev_Q, 
-                    step_size,
-                    regulation,
-                    num_users,
-                    num_items,
-                    num_f,
-                    batch_size);
+                
                 
                 getchar();
             }
