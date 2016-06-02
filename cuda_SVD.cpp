@@ -156,7 +156,7 @@ void decompose_GPU(stringstream& buffer,
         host_buffer[3 * idx]--; // the user and item are 1 indexed, in the matrix it should be 0 indexed
         host_buffer[3 * idx + 1]--;
         if (idx == batch_size - 1) { // the buffer is full
-            cout << idx << " " << host_buffer[3 * idx] << " " << host_buffer[3 * idx + 1] << " " << host_buffer[3 * idx + 2] << endl;
+            // cout << idx << " " << host_buffer[3 * idx] << " " << host_buffer[3 * idx + 1] << " " << host_buffer[3 * idx + 2] << endl;
 
             gpuErrChk(cudaMemcpy(dev_data, host_buffer, sizeof(int) * 3 * batch_size, cudaMemcpyHostToDevice));
             cudaCallTrainingKernel(blocks, 
@@ -171,9 +171,9 @@ void decompose_GPU(stringstream& buffer,
                     num_f,
                     batch_size);
             gpuErrChk(cudaMemcpy(host_P, dev_P, sizeof(float) * num_users * num_f, cudaMemcpyDeviceToHost));
-            for (int i = 0; i < num_f; ++i) {
-                cout << host_P[i] << " " << endl;
-            }
+            // for (int i = 0; i < num_f; ++i) {
+            //     cout << host_P[i] << " " << endl;
+            // }
             
         }
         host_R[ host_buffer[3 * idx] * num_items + host_buffer[3 * idx + 1] ] = host_buffer[3 * idx + 2]; // read in the R data

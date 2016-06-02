@@ -66,6 +66,7 @@ void cudaTrainingKernel(
         for (int i = 0; i < num_f; ++i) {
             e -= dev_P[user * num_f + i] * dev_Q[i * num_items + item];
         }
+        printf("%f \n", e);
 
         for (int i = 0; i < num_f; ++i) {
             float update_row = step_size * (e * dev_Q[i * num_items + item] - regulation * dev_P[user * num_f + i]);
