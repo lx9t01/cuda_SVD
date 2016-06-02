@@ -43,6 +43,40 @@ void cudaMultiplyKernel(
     }
 }
 
+__global__
+void cudaTrainingKernel(
+        int* dev_data,
+        float* dev_P,
+        float* dev_Q,
+        float step_size,
+        float regulation,
+        int num_users,
+        int num_items,
+        int num_f,
+        int batch_size) {
+    unsigned int thread_idx = blockIdx.x * blockDim.x + threadIdx.x;
+    while (thread_idx < batch_size) {
+        int user = dev_data[3 * thread_idx];
+        int item = dev_data[3 * thread_idx + 1];
+        int rate = dev_data[3 * thread_idx + 2];
+        float e = rate;
+        for (int i = 0; i < num_f; ++i) {
+            e -= dev_P[user * num_f + i] * dev_Q[i * num_items + item];
+        }
+
+        for (int i = 0; i < num_f; ++i) {
+            float update_row = step_size * (e * dev_Q[i * num_items + item] - regulation * dev_P[user * num_f + i]);
+            float update_col = step_size * (e * dev_P[user * num_f + i] - regulation * dev_Q[i * num_items + item]);
+            atomicAdd(&dev_P[user * num_f + i], update_row);
+            atomicAdd(&dev_Q[i * num_items + item], update_col);
+        }
+
+
+        thread_idx += blockDim.x * gridDim.x;
+    }
+
+}
+
 float cudaCallFindRMSKernel(const unsigned int blocks,
     const unsigned int threadsPerBlock,
     float* dev_R0, 
@@ -82,6 +116,33 @@ void cudaCallMultiplyKernel(const unsigned int blocks,
         num_items,
         num_f);
 }
+
+void cudaCallTrainingKernel(const unsigned int blocks, 
+    const unsigned int threadsPerBlock, 
+    int* dev_data, 
+    float* dev_P, 
+    float* dev_Q, 
+    float step_size,
+    float regulation,
+    int num_users,
+    int num_items,
+    int num_f,
+    int batch_size) {
+    cudaTrainingKernel<<<blocks, threadsPerBlock>>>(
+        dev_data,
+        dev_P,
+        dev_Q,
+        step_size,
+        regulation,
+        num_users,
+        num_items,
+        num_f,
+        batch_size);
+}
+
+
+
+
 
 
 

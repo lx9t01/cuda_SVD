@@ -103,6 +103,19 @@ void writeCSV(MatrixXf R, string filename) {
     outputfile.close();
 }
 
+// write the output full rating matrix to a csv file
+void writeCSV(float* R, int num_users, int num_items, string filename) {
+    ofstream outputfile;
+    outputfile.open(filename);
+    for (int i = 0; i < num_users; ++i) {
+        for (int j = 0; j < num_items; ++j) {
+            outputfile << R[i * num_items + j] << ",";
+        }
+        outputfile << "\n";
+    }
+    outputfile.close();
+}
+
 
 // read one line of the training data
 // input:  str

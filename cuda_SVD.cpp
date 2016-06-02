@@ -95,10 +95,10 @@ void decompose_CPU(stringstream& buffer,
             // this piece of code is used to compute root mean square
             // value of rating matrix error,
             // will be replaced with a GPU kerne;
-            for (int i = 0; i < num_users; ++i) {
+            for (int k = 0; k < num_users; ++k) {
                 for (int j = 0; j < num_items; ++j) {
-                    if (R(i, j) != 0) {
-                        RMS_new += (R_1(i, j) - R(i, j)) * (R_1(i, j) - R(i, j));
+                    if (R(k, j) != 0) {
+                        RMS_new += (R_1(k, j) - R(k, j)) * (R_1(k, j) - R(k, j));
                     }
                 }
             }
@@ -174,44 +174,104 @@ void decompose_GPU(stringstream& buffer,
         cudaMemset(dev_R1, 0, sizeof(float) * num_users * num_items);
 
         // multiply P and Q in GPU, results stored in dev_R1
-        cudaCallMultiplyKernel(blocks, threadsPerBlock, dev_P, dev_Q, dev_R1, num_users, num_items, num_f);
+        cudaCallMultiplyKernel(blocks, 
+            threadsPerBlock, 
+            dev_P, 
+            dev_Q, 
+            dev_R1, 
+            num_users, 
+            num_items, 
+            num_f);
 
         // compare the RMS loss between dev_R0 and dev_R1
-        RMS = cudaCallFindRMSKernel(blocks, threadsPerBlock, dev_R0, dev_R1, num_users, num_items);
+        RMS = cudaCallFindRMSKernel(blocks, 
+            threadsPerBlock, 
+            dev_R0, 
+            dev_R1, 
+            num_users, 
+            num_items);
         cout << "GPU SUM of RMS: " << RMS << endl;
         RMS /= review_idx;
         RMS = sqrt(RMS);
         cout << "GPU RMS: " << RMS << endl;
         RMS_new = RMS;
 
+        // allocating training data in the GPU
+        int* dev_data;
+        cudaMalloc((void**) &dev_data, sizeof(int) * 3 * batch_size);
+
         while (delta_new / delta >= 0.02) {
             cout << "stop condition GPU: " << (delta_new / delta) << endl;
             RMS = RMS_new;
             delta = delta_new;
             int iteration = data_GPU.size() / batch_size;
+
+            for (int i = 0; i < iteration; ++i) {
+                // copy batches of training data into GPU
+                vector<int> temp = data_GPU[i * batch_size];
+                cout<< temp[0] << " " << temp[1] << " " << temp[2] <<endl;
+                cudaMemcpy(dev_data, data_GPU[i * batch_size], sizeof(int) * 3 * batch_size, cudaMemcpyHostToDevice);
+            
+                cudaCallTrainingKernel(blocks, 
+                    threadsPerBlock, 
+                    dev_data, 
+                    dev_P, 
+                    dev_Q, 
+                    step_size,
+                    regulation,
+                    num_users,
+                    num_items,
+                    num_f,
+                    batch_size);
+                
+                getchar();
+            }
+
+            // call R_1 = P * Q after training in a batch
+            cudaCallMultiplyKernel(blocks, 
+                threadsPerBlock, 
+                dev_P, 
+                dev_Q, 
+                dev_R1, 
+                num_users, 
+                num_items, 
+                num_f);
+
+            RMS_new = cudaCallFindRMSKernel(blocks, 
+                threadsPerBlock, 
+                dev_R0, 
+                dev_R1, 
+                num_users, 
+                num_items);
+
+            cout << "GPU SUM of RMS_new: " << RMS_new << endl;
+            RMS_new /= review_idx;
+            RMS_new = sqrt(RMS_new);
+            cout << "GPU RMS_new: " << RMS_new << endl;
+
+            delta_new = RMS - RMS_new;
+            cout << "delta_new: " << delta_new << endl;
+
             getchar();
+            random_shuffle(data.begin(), data.end());
         }
+        float *host_R_1 = (float*)malloc(sizeof(float) * num_users * num_items); 
+        cudaMemcpy(host_R_1, dev_R1, sizeof(float) * num_users * num_items, cudaMemcpyDeviceToHost);
+
+        printf("Training complete in GPU, writing result rating matrix to CSV....\n");
+        writeCSV(host_R_1, num_users, num_items, "output_GPU.csv");
 
 
+        free(host_P);
+        free(host_Q);
+        free(host_R);
 
-
-
-
-
-
-
-
-
-
+        cudaFree(dev_P);
+        cudaFree(dev_Q);
         cudaFree(dev_R0);
         cudaFree(dev_R1);
+        free(host_R_1);
     }
-    
-
-
-
-
-
 }
 
 

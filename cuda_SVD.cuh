@@ -19,4 +19,16 @@ void cudaCallMultiplyKernel(const unsigned int blocks,
     int num_items, 
     int num_f);
 
+void cudaCallTrainingKernel(const unsigned int blocks, 
+    const unsigned int threadsPerBlock, 
+    int* dev_data, 
+    float* dev_P, 
+    float* dev_Q, 
+    float step_size,
+    float regulation,
+    int num_users,
+    int num_items,
+    int num_f,
+    int batch_size);
+
 #endif
