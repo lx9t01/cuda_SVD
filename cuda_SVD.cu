@@ -88,7 +88,7 @@ float cudaCallFindRMSKernel(const unsigned int blocks,
     int num_items) {
 
     float *dev_sum;
-    cudaMalloc(&dev_sum, sizeof(float));
+    cudaMalloc((void**)&dev_sum, sizeof(float));
     cudaMemset(dev_sum, 0, sizeof(float));
 
     cudaFindRMSKernel<<<blocks, threadsPerBlock>>>(
@@ -97,8 +97,8 @@ float cudaCallFindRMSKernel(const unsigned int blocks,
         dev_sum, 
         num_users * num_items);
     float host_sum = -1;
-    printf("dev_sum: %f\n", dev_sum);
     cudaMemcpy(&host_sum, dev_sum, sizeof(float), cudaMemcpyDeviceToHost);
+    printf("dev_sum: %f\n", &host_sum);
     cudaFree(dev_sum);
     return host_sum;
 }
