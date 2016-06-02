@@ -150,15 +150,6 @@ void decompose_GPU(stringstream& buffer,
     int *dev_data; 
     cudaMalloc((void**) &dev_data, sizeof(int) * 3 * batch_size);
 
-    float *dev_R1;
-    cudaMalloc((void**) &dev_R1, sizeof(float) * num_users * num_items);
-    cudaMemset(dev_R1, 0, sizeof(float) * num_users * num_items);
-
-    float RMS = 0;
-    // float RMS_new = 0;
-    // float delta = 1;
-    // float delta_new = 1;
-
     for (string user_rate; getline(buffer, user_rate); ++review_idx) {
         int idx = review_idx % batch_size;
         readData(user_rate, &host_buffer[3 * idx]);
@@ -198,11 +189,17 @@ void decompose_GPU(stringstream& buffer,
     
     // the correct R matrix
     float *dev_R0;
-    cudaMalloc((void**) &dev_R0, sizeof(float) * num_users * num_items); 
-    cudaMemcpy(dev_R0, host_R, sizeof(float) * num_users * num_items, cudaMemcpyHostToDevice);
+    gpuErrChk(cudaMalloc((void**) &dev_R0, sizeof(float) * num_users * num_items)); 
+    gpuErrChk(cudaMemcpy(dev_R0, host_R, sizeof(float) * num_users * num_items, cudaMemcpyHostToDevice));
 
-    
+    float *dev_R1;
+    gpuErrChk(cudaMalloc((void**) &dev_R1, sizeof(float) * num_users * num_items));
+    gpuErrChk(cudaMemset(dev_R1, 0, sizeof(float) * num_users * num_items));
 
+    float RMS = 0;
+    // float RMS_new = 0;
+    // float delta = 1;
+    // float delta_new = 1;
     // multiply P and Q in GPU, results stored in dev_R1
     cudaCallMultiplyKernel(blocks, 
         threadsPerBlock, 
@@ -225,10 +222,21 @@ void decompose_GPU(stringstream& buffer,
     cout << "GPU RMS: " << RMS << endl;
 
     float *host_R_1 = (float*)malloc(sizeof(float) * num_users * num_items); 
-    cudaMemcpy(host_R_1, dev_R1, sizeof(float) * num_users * num_items, cudaMemcpyDeviceToHost);
+    gpuErrChk(cudaMemcpy(host_R_1, dev_R1, sizeof(float) * num_users * num_items, cudaMemcpyDeviceToHost));
     printf("Training complete in GPU, writing result rating matrix to CSV....\n");
     writeCSV(host_R_1, num_users, num_items, "output_GPU.csv");
 
+    free(host_P);
+    free(host_Q);
+    free(host_R);
+
+    cudaFree(dev_P);
+    cudaFree(dev_Q);
+    cudaFree(dev_R0);
+    cudaFree(dev_R1);
+    free(host_R_1);
+    free(host_buffer);
+    cudaFree(dev_data);
     /*
         
 
