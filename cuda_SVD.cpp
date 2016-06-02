@@ -23,6 +23,7 @@ void decompose_CPU(stringstream& buffer,
     int num_f, 
     float step_size, 
     float regulation) {
+
     MatrixXf P(num_users, num_f);
     MatrixXf Q(num_f, num_items);
 
@@ -122,24 +123,26 @@ void decompose_GPU(stringstream& buffer,
     float step_size, 
     float regulation) {
 
-    MatrixXf P(num_users, num_f);
-    MatrixXf Q(num_f, num_items);
-    MatrixXf R(num_users, num_items);
-    gaussianFill(P, num_users, num_f);
-    gaussianFill(Q, num_f, num_items);
+    float *host_P = (float*)malloc(sizeof(float) * num_users * num_f); // host of R
+    float *host_Q = (float*)malloc(sizeof(float) * num_f * num_items); // host of Q
+
+    float *host_R = (float*)malloc(sizeof(float) * num_users * num_items); // host of R, 'correct result'
+
+    gaussianFill(host_P, num_users, num_f);
+    gaussianFill(host_Q, num_f, num_items);
+    memset(host_R, 0, sizeof(float) * num_users * num_items)
     
     vector< vector<int> > data_GPU = vector< vector<int> > (); 
-    // create a vector to store all of training data
 
     int review_idx = 0;
     for (string user_rate; getline(buffer, user_rate); ++review_idx) {
         int host_buffer[3];
         readData(user_rate, &host_buffer[0]);
-        host_buffer[0]--; // transform 1-based data to 0-based index
+        host_buffer[0]--; 
         host_buffer[1]--;
         vector<int> line(begin(host_buffer), end(host_buffer));
         data_GPU.push_back(line);
-        R(host_buffer[0], host_buffer[1]) = host_buffer[2]; // record the rating
+        host_R[ host_buffer[0] * num_items + host_buffer[1] ] = host_buffer[2]; // read in the R data
     }
 
     float RMS = 0;
@@ -151,16 +154,29 @@ void decompose_GPU(stringstream& buffer,
     const unsigned int threadsPerBlock = 64;
 
     {
-        MatrixXf R_1 = P * Q;
-        float *R0 = R.data(); // host data of R
-        float *R1 = R_1.data();
-        float *dev_R0;
-        float *dev_R1;
+        // copy P and Q matrix into GPU
+        float *dev_P;
+        cudaMalloc((void**) &dev_P, sizeof(float) * num_users * num_f);
+        cudaMemcpy(dev_P, host_P, sizeof(float) * num_users * num_f, cudaMemcpyHostToDevice);
 
-        cudaMalloc((void**) &dev_R0, sizeof(float) * num_users * num_items);
+        float *dev_Q;
+        cudaMalloc((void**) &dev_Q, sizeof(float) * num_f * num_items);
+        cudaMemcpy(dev_Q, host_Q, sizeof(float) * num_f * num_items);
+
+        // the correct R matrix
+        float *dev_R0;
+        cudaMalloc((void**) &dev_R0, sizeof(float) * num_users * num_items); 
+        cudaMemcpy(dev_R0, host_R, sizeof(float) * num_users * num_items, cudaMemcpyHostToDevice);
+
+
+        float *dev_R1;
         cudaMalloc((void**) &dev_R1, sizeof(float) * num_users * num_items);
-        cudaMemcpy(dev_R0, R0, sizeof(float) * num_users * num_items, cudaMemcpyHostToDevice);
-        cudaMemcpy(dev_R1, R1, sizeof(float) * num_items * num_items, cudaMemcpyHostToDevice);
+        cudaMemset(dev_R1, 0, sizeof(float) * num_users * num_items);
+
+        // multiply P and Q in GPU, results stored in dev_R1
+        cudaCallMultiplyKernel(blocks, threadsPerBlock, dev_P, dev_Q, dev_R1, num_users, num_items, num_f);
+
+        // compare the RMS loss between dev_R0 and dev_R1
         RMS = cudaCallFindRMSKernel(blocks, threadsPerBlock, dev_R0, dev_R1, num_users, num_items);
         cout << "GPU SUM of RMS: " << RMS << endl;
         RMS /= review_idx;
