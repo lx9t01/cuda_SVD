@@ -228,7 +228,7 @@ void decompose_GPU(stringstream& buffer,
             }
 
             cudaMemcpy(host_P, dev_P, sizeof(float) * num_users * num_f, cudaMemcpyDeviceToHost);
-            printf("%f\n", host_P[0]);
+            printf("host_P: %f\n", host_P[0]);
 
             // call R_1 = P * Q after training in a batch
             cudaCallMultiplyKernel(blocks, 
@@ -239,6 +239,8 @@ void decompose_GPU(stringstream& buffer,
                 num_users, 
                 num_items, 
                 num_f);
+            cudaMemcpy(host_R, dev_R1, sizeof(float) * num_users * num_items, cudaMemcpyDeviceToHost);
+            printf("host_R: %f\n", host_R[0]);
 
             RMS_new = cudaCallFindRMSKernel(blocks, 
                 threadsPerBlock, 
