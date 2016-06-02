@@ -38,6 +38,8 @@ void cudaMultiplyKernel(
         for (int i = 0; i < num_f; ++i) {
             dev_R1[thread_idx] += dev_P[row * num_f + i] * dev_Q[i * num_items + col];
             // might need atomic add?
+        }
+        if (thread_idx == 0) {
             printf("%f\n", dev_R1[thread_idx]);
         }
         thread_idx += blockDim.x * gridDim.x;
