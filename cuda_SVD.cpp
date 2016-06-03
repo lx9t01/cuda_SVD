@@ -8,6 +8,7 @@ using namespace Eigen;
 using namespace std;
 
 #define BATCH_SIZE 1000
+#define PARSE_THROUGH 1
 
 
 /*
@@ -109,7 +110,12 @@ void decompose_CPU(stringstream& buffer,
         delta_new = RMS - RMS_new;
         cout << "delta_new: " << delta_new << endl;
         // getchar();
-        random_shuffle(data.begin(), data.end());
+        
+        if (PARSE_THROUGH) {
+            break;
+        } else {
+            random_shuffle(data.begin(), data.end());
+        }
     }
     printf("Training complete, writing result rating matrix to CSV....\n");
     writeCSV(R_1, "output_CPU.csv");
