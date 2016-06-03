@@ -32,19 +32,26 @@ to run the program in default settings, or type
 ```
 to set the number of users and items manually. 
 
-The training file provided is u1.base, this is a small portion of the netflix contest data file
+The training file provided is 
+_u1.base_
+this is a small portion of the netflix contest data file
 
-*Parameters in the program: *
-BATCH_SIZE	1000	defines batch size
-PARSE_THROUGH	1	a toggle of whether use CPU to training iteratively (0) or one-time (1)
-		0.02	The threshold to determine when the result converges in iterative mode
-blocks		64
-threadsPerBlock	64
-num_users	943	1-indexed number of users
-num_items	1682	1-indexed number of items
-num_f		30	dimension of latent factor
-gamma		0.001	step size, applies to both CPU and GPU code
-lamda		0.0005	regularization term parameter, applies to both CPU and GPU code
+_Parameters in the program_
+
+| parameter        | value          | comments  |
+| ------------- |:-------------:| -----:|
+| BATCH_SIZE      | 1000 | defines batch size |
+| PARSE_THROUGH      | 1      |   a toggle of whether use CPU to training iteratively (0) or one-time (1)|
+|  () | 0.02      |  The threshold to determine when the result converges in iterative mode |
+|  blocks | 64      |  number of blocks per grid |
+|  threadsPerBlock | 64     |  number of threads per block |
+|  num_users | 943      |  1-indexed number of users |
+|  num_items | 1682      |  1-indexed number of items |
+|  num_f | 30      |  dimension of latent factor |
+|  num_f | 30      |  dimension of latent factor |
+|  gamma | 0.001      |  step size, applies to both CPU and GPU code |
+|  lamda | 0.0005      |  regularization term parameter, applies to both CPU and GPU code |
+
 
 
 ### History
@@ -85,13 +92,19 @@ While iterative training could yield an accurate result in CPU demo, it’s not 
 Note: 
 because GPU training is updated inside the kernel, I did not print out RMS error every time the P and Q are updated, but just print out them in the end. They are similar to CPU RMS error. 
 
-1. Original non-expanded training file: 
+1. Original non-expanded training file: (100000 ratings)
 Total time to run decomposition on CPU: 1.524624 (s)
 Total time to run decomposition on GPU: 0.496859 (s)
 RMS CPU: 3.69954
 GPU RMS: 3.69957
 
-2. Expanded training file
+2. Expanded training file: (560000 ratings)
+Total time to run decomposition on CPU: 8.359917 (s)
+Total time to run decomposition on GPU: 0.896845 (s)
+RMS CPU: 1.28598
+GPU RMS: 1.31158
+
+As the training data got big, the submission attachment can only contain this number of data… 
 
 ### Performance Analysis
 1. The GPU has significant time advantage over CPU (3x);
