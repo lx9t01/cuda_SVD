@@ -42,14 +42,15 @@ void decompose_CPU(stringstream& buffer,
         host_buffer[1]--;
         vector<int> line(begin(host_buffer), end(host_buffer));
         data.push_back(line);
-        // if(host_buffer[0]>=942)host_buffer[0]=942;
-        // if(host_buffer[1]>=1600)host_buffer[1]=1600;
-        // cout << host_buffer[0] << ' ' << host_buffer[1] << ' ' << host_buffer[2] << endl;
         R(host_buffer[0], host_buffer[1]) = host_buffer[2]; // record the rating
     }
-    // for (auto it = data.begin(); it != data.end(); ++it) {
-    //     cout << (*it)[0] << " "<<(*it)[1]<<" "<<(*it)[2]<<endl;
-    // }
+
+    /*
+    for (auto it = data.begin(); it != data.end(); ++it) {
+        cout << (*it)[0] << " "<<(*it)[1]<<" "<<(*it)[2]<<endl;
+    }
+    // */
+
     float RMS = 0;
     float RMS_new = 0;
     float delta = 1;
@@ -236,90 +237,7 @@ void decompose_GPU(stringstream& buffer,
     free(host_R_1);
     free(host_buffer);
     cudaFree(dev_data);
-    /*
-        
-
-        while (delta_new / delta >= 0.02) {
-            cout << "stop condition GPU: " << (delta_new / delta) << endl;
-            RMS = RMS_new;
-            delta = delta_new;
-            int iteration = data_GPU.size() / batch_size;
-
-            for (int i = 0; i < iteration; ++i) {
-                // copy batches of training data into GPU
-                // vector<int> temp = data_GPU[i * batch_size];
-                // cout<< temp[0] << " " << temp[1] << " " << temp[2] <<endl;
-                gpuErrChk(cudaMemcpy(dev_data, &(data_GPU[i * batch_size])[0], sizeof(int) * 3 * batch_size, cudaMemcpyHostToDevice));
-            
-                // test
-                int* test0 = (int*)malloc(sizeof(int) * 3 * batch_size);
-                gpuErrChk(cudaMemcpy(test0, dev_data, sizeof(int) * 3 * batch_size, cudaMemcpyDeviceToHost));
-                for (int j = 0; j < batch_size; ++j) {
-                    for (int k = 0; k < 3; ++k) {
-                        printf("%d ", test0[3 * j + k]);
-                    }
-                    printf("\n");
-                }
-
-                
-                
-                getchar();
-            }
-
-            cudaMemcpy(host_P, dev_P, sizeof(float) * num_users * num_f, cudaMemcpyDeviceToHost);
-            printf("host_P: %f\n", host_P[0]);
-
-            // call R_1 = P * Q after training in a batch
-            cudaCallMultiplyKernel(blocks, 
-                threadsPerBlock, 
-                dev_P, 
-                dev_Q, 
-                dev_R1, 
-                num_users, 
-                num_items, 
-                num_f);
-
-            float *temp = (float*)malloc(sizeof(float) * num_users * num_items);
-
-            cudaMemcpy(temp, dev_R1, sizeof(float) * num_users * num_items, cudaMemcpyDeviceToHost);
-            printf("calculated: %f\n", temp[0]);
-            printf("host_R correct: %f\n", host_R[0]);
-
-            RMS_new = cudaCallFindRMSKernel(blocks, 
-                threadsPerBlock, 
-                dev_R0, 
-                dev_R1, 
-                num_users, 
-                num_items);
-
-            cout << "GPU SUM of RMS_new: " << RMS_new << endl;
-            RMS_new /= review_idx;
-            RMS_new = sqrt(RMS_new);
-            cout << "GPU RMS_new: " << RMS_new << endl;
-
-            delta_new = RMS - RMS_new;
-            cout << "delta_new: " << delta_new << endl;
-
-            getchar();
-            random_shuffle(data_GPU.begin(), data_GPU.end());
-        }
-        float *host_R_1 = (float*)malloc(sizeof(float) * num_users * num_items); 
-        cudaMemcpy(host_R_1, dev_R1, sizeof(float) * num_users * num_items, cudaMemcpyDeviceToHost);
-
-        printf("Training complete in GPU, writing result rating matrix to CSV....\n");
-        writeCSV(host_R_1, num_users, num_items, "output_GPU.csv");
-
-
-        free(host_P);
-        free(host_Q);
-        free(host_R);
-
-        cudaFree(dev_P);
-        cudaFree(dev_Q);
-        cudaFree(dev_R0);
-        cudaFree(dev_R1);
-        free(host_R_1);
-    */
+    
 }
 
 
@@ -338,16 +256,14 @@ int main(int argc, char* argv[]) {
         num_items = atoi(argv[3]);
         num_f = atoi(argv[4]);
     } else {
-        printf("./classify <path to training datafile> optional \
+        printf("./cuda_SVD <path to training datafile> optional \
             (<number of users> <number of items> <number of dimensions f>)\n");
         return -1;
     }
     const float gamma = 0.001;
     const float lamda = 0.0005;
 
-    // CPU decomposition
     float time_initial, time_final;
-    time_initial = clock();
 
     ifstream infile_cpu(argv[1]); // the training data
     ifstream infile_gpu(argv[1]); // the testing data
@@ -356,15 +272,19 @@ int main(int argc, char* argv[]) {
     buffer1 << infile_cpu.rdbuf();
     buffer2 << infile_gpu.rdbuf();
 
+    // CPU decomposition
+    time_initial = clock();
     decompose_CPU(buffer1, BATCH_SIZE, num_users, num_items, num_f, gamma, lamda);
-
     time_final = clock();
-    printf("Total time to run classify on CPU: %f (s)\n", (time_final - time_initial) / CLOCKS_PER_SEC);
+    printf("Total time to run decomposition on CPU: %f (s)\n", (time_final - time_initial) / CLOCKS_PER_SEC);
     // end of CPU decomposition
 
     // GPU decomposition
-
+    float gputime = -1;
+    START_TIMER();
     decompose_GPU(buffer2, BATCH_SIZE, num_users, num_items, num_f, gamma, lamda);
+    STOP_RECORD_TIMER(gputime);
+    printf("Total time to run decomposition on GPU: %f (s)\n", gputime/1000);
     // end of GPU decomposition
 
 
