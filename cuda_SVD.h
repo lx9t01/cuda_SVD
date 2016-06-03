@@ -89,6 +89,7 @@ void gaussianFill(float* output, int size_row, int size_col) {
 
 
 // write the output full rating matrix to a csv file
+// from an Eigen matrix
 void writeCSV(MatrixXf R, string filename) {
     int r = R.rows();
     int c = R.cols();
@@ -103,7 +104,10 @@ void writeCSV(MatrixXf R, string filename) {
     outputfile.close();
 }
 
+
+
 // write the output full rating matrix to a csv file
+// from an array of floats
 void writeCSV(float* R, int num_users, int num_items, string filename) {
     ofstream outputfile;
     outputfile.open(filename);
@@ -129,6 +133,8 @@ void readData(string str, int *output) {
     }
 }
 
+
+
 // decompose the matrix with CPU
 /*input:  buffer: from the training data file
           batch_size: read a batch from the input file
@@ -146,6 +152,8 @@ void decompose_CPU(stringstream& buffer,
     int num_f, 
     float step_size, 
     float regualtion);
+
+
 
 // decompose the matrix with GPU (as an interface between stream, same as CPU)
 /*input:  buffer: from the training data file

@@ -1,3 +1,5 @@
+# borrowed from previous sets' makefile and modified accordingly
+
 CC = g++
 FLAGS = -Wall -g -std=c++11
 EXENAME = cuda_SVD

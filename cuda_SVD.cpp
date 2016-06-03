@@ -85,18 +85,24 @@ void decompose_CPU(stringstream& buffer,
             for (int j = 0; j < batch_size; ++j) {
                 vector<int> rating = data[i * batch_size + j];
                 float e = rating[2] - P.row(rating[0]).dot(Q.col(rating[1]));
-                // cout << i * batch_size + j << endl;
-                // cout << rating[0] << " "<< rating[1]<< " " << rating[2] << endl;
+                /* 
+                cout << i * batch_size + j << endl;
+                cout << rating[0] << " "<< rating[1]<< " " << rating[2] << endl;
+                // */
                 P.row(rating[0]) += step_size * (e * (Q.col(rating[1])).transpose() - regulation * P.row(rating[0]));
                 Q.col(rating[1]) += step_size * (e * (P.row(rating[0])).transpose() - regulation * Q.col(rating[1]));
-                // cout << step_size * (e * (Q.col(rating[1])).transpose() - regulation * P.row(rating[0])) << endl;
-                // getchar();
+                /* 
+                cout << step_size * (e * (Q.col(rating[1])).transpose() - regulation * P.row(rating[0])) << endl;
+                getchar();
+                // */
             }
             R_1 = P * Q;
             RMS_new = 0;
-            // this piece of code is used to compute root mean square
-            // value of rating matrix error,
-            // will be replaced with a GPU kerne;
+            /*
+            this piece of code is used to compute root mean square
+            value of rating matrix error,
+            will be replaced with a GPU kernel
+            */
             for (int k = 0; k < num_users; ++k) {
                 for (int j = 0; j < num_items; ++j) {
                     if (R(k, j) != 0) {
@@ -139,8 +145,6 @@ void decompose_GPU(stringstream& buffer,
     gaussianFill(host_Q, num_f, num_items);
     memset(host_R, 0, sizeof(float) * num_users * num_items);
     
-    // vector< vector<int> > data_GPU = vector< vector<int> > (); 
-
     int review_idx = 0;
     const unsigned int blocks = 64;
     const unsigned int threadsPerBlock = 64;
@@ -162,7 +166,7 @@ void decompose_GPU(stringstream& buffer,
         readData(user_rate, &host_buffer[3 * idx]);
         host_buffer[3 * idx]--; // the user and item are 1 indexed, in the matrix it should be 0 indexed
         host_buffer[3 * idx + 1]--;
-        if (idx == batch_size - 1) { // the buffer is full
+        if (idx == batch_size - 1) { // when the buffer is full
             // cout << idx << " " << host_buffer[3 * idx] << " " << host_buffer[3 * idx + 1] << " " << host_buffer[3 * idx + 2] << endl;
 
             gpuErrChk(cudaMemcpy(dev_data, host_buffer, sizeof(int) * 3 * batch_size, cudaMemcpyHostToDevice));
@@ -197,10 +201,7 @@ void decompose_GPU(stringstream& buffer,
     gpuErrChk(cudaMemset(dev_R1, 0, sizeof(float) * num_users * num_items));
 
     float RMS = 0;
-    // float RMS_new = 0;
-    // float delta = 1;
-    // float delta_new = 1;
-    // multiply P and Q in GPU, results stored in dev_R1
+
     cudaCallMultiplyKernel(blocks, 
         threadsPerBlock, 
         dev_P, 
@@ -286,27 +287,6 @@ int main(int argc, char* argv[]) {
     STOP_RECORD_TIMER(gputime);
     printf("Total time to run decomposition on GPU: %f (s)\n", gputime/1000);
     // end of GPU decomposition
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     return 1;
 }

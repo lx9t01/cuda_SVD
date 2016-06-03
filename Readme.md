@@ -55,13 +55,13 @@ _Parameters in the program_
 
 
 ### History
-*ORIGINAL METHOD*
+*ORIGINAL METHOD: *
 The project in the beginning is designed to handle medium number of data, and training on the data iteratively until the trained model is converged. 
 
 However, this method applies to CPU code but not the GPU code. As the training goes on, we expect to shuffle the training data every time to mimic the random sampling of data. Doing so in GPU memory will cause unexpected mess and therefore The iterative training process only applies to CPU running. Copying the data back to CPU, shuffle and copy back will greatly undermine performance. 
 
 The CPU iterative running results are as follows: 
-——————————
+
 num_users = 943;  num_items = 1682;  num_f = 30;
 
 const float gamma = 0.01;  const float lamda = 0.005;
@@ -80,9 +80,9 @@ a rating matrix that has a difference of 0.35 stars compared
 with existing data. 
 
 It took Mako CPU almost 3 hours to train. 
-——————————
 
-*UPDATED METHOD*
+
+*UPDATED METHOD: *
 While iterative training could yield an accurate result in CPU demo, it’s not suitable for GPU acceleration for several reasons: 
 * GPUs are not very good at shuffling the training data (at least I am unable to perform this in any kernel)
 * In most real-world cases, data are in huge amount. Therefore, it makes sense for GPU or CPU training process to just parse through the data and finish the training, because they are likely to be converged in that case. 
@@ -109,10 +109,14 @@ As the training data got big, the submission attachment can only contain this nu
 
 ### Performance Analysis
 1. The GPU has significant time advantage over CPU (3x - 10x);
-2. Because the training is not completed compared with iterative model, The RMS error is huge. 
+2. Because the training is not completed compared with iterative model, The RMS error is relatively big.
+3. If the training data set got bigger, the accuracy will improve significantly.  
 
 ### Resources
-1. Netflix Prize Data Sethttp://academictorrents.com/details/9b13183dc4d60676b773c9e2cd6de5e5542cee9a2. Matrix Factorization Techniques For Recommender Systemshttps://datajobs.com/data-science-repo/Recommender-Systems-[Netflix].pdf
+1. Netflix Prize Data Set
+http://academictorrents.com/details/9b13183dc4d60676b773c9e2cd6de5e5542cee9a
+2. Matrix Factorization Techniques For Recommender Systems
+https://datajobs.com/data-science-repo/Recommender-Systems-[Netflix].pdf
 
 
 
