@@ -1,6 +1,6 @@
 # Parallel Latent Factor Model in Recommender Systems
 ## GPU Accelerated Matrix Factorization
-### github: https://github.com/lx9t01/cuda_SVD
+### github (recommend to read this): https://github.com/lx9t01/cuda_SVD
 
 ### Project Description
 
@@ -90,7 +90,8 @@ While iterative training could yield an accurate result in CPU demo, it’s not 
 
 ### Results
 Note: 
-because GPU training is updated inside the kernel, I did not print out RMS error every time the P and Q are updated, but just print out them in the end. They are similar to CPU RMS error. 
+* because GPU training is updated inside the kernel, I did not print out RMS error every time the P and Q are updated, but just print out them in the end. They are similar to CPU RMS error. 
+* Because the training is not complete, the cvs files containing the rating data are not accurate enough, but can only provide a trend of rating. To obtain real rating recommendation, we need more data to training more times. 
 
 1. Original non-expanded training file: (100000 ratings)
 Total time to run decomposition on CPU: 1.524624 (s)
@@ -107,11 +108,11 @@ GPU RMS: 1.31158
 As the training data got big, the submission attachment can only contain this number of data… 
 
 ### Performance Analysis
-1. The GPU has significant time advantage over CPU (3x);
+1. The GPU has significant time advantage over CPU (3x - 10x);
 2. Because the training is not completed compared with iterative model, The RMS error is huge. 
 
 ### Resources
-
+1. Netflix Prize Data Sethttp://academictorrents.com/details/9b13183dc4d60676b773c9e2cd6de5e5542cee9a2. Matrix Factorization Techniques For Recommender Systemshttps://datajobs.com/data-science-repo/Recommender-Systems-[Netflix].pdf
 
 
 
