@@ -110,7 +110,7 @@ void decompose_CPU(stringstream& buffer,
         delta_new = RMS - RMS_new;
         cout << "delta_new: " << delta_new << endl;
         // getchar();
-        
+
         if (PARSE_THROUGH) {
             break;
         } else {
@@ -356,7 +356,7 @@ int main(int argc, char* argv[]) {
     buffer1 << infile_t.rdbuf();
     buffer2 << infile_v.rdbuf();
 
-    // decompose_CPU(buffer1, BATCH_SIZE, num_users, num_items, num_f, gamma, lamda);
+    decompose_CPU(buffer1, BATCH_SIZE, num_users, num_items, num_f, gamma, lamda);
 
     time_final = clock();
     printf("Total time to run classify on CPU: %f (s)\n", (time_final - time_initial) / CLOCKS_PER_SEC);
