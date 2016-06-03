@@ -39,9 +39,9 @@ void cudaMultiplyKernel(
             dev_R1[thread_idx] += dev_P[row * num_f + i] * dev_Q[i * num_items + col];
             // might need atomic add?
         }
-        if (thread_idx == 0) {
-            printf("%f\n", dev_R1[thread_idx]);
-        }
+        // if (thread_idx == 0) {
+        //     printf("%f\n", dev_R1[thread_idx]);
+        // }
         thread_idx += blockDim.x * gridDim.x;
     }
 }
@@ -66,7 +66,7 @@ void cudaTrainingKernel(
         for (int i = 0; i < num_f; ++i) {
             e -= dev_P[user * num_f + i] * dev_Q[i * num_items + item];
         }
-        printf("%f \n", e);
+        // printf("%f \n", e);
 
         for (int i = 0; i < num_f; ++i) {
             float update_row = step_size * (e * dev_Q[i * num_items + item] - regulation * dev_P[user * num_f + i]);
@@ -99,7 +99,7 @@ float cudaCallFindRMSKernel(const unsigned int blocks,
         num_users * num_items);
     float host_sum = -1;
     cudaMemcpy(&host_sum, dev_sum, sizeof(float), cudaMemcpyDeviceToHost);
-    printf("dev_sum: %f\n", host_sum);
+    // printf("dev_sum: %f\n", host_sum);
     cudaFree(dev_sum);
     return host_sum;
 }
