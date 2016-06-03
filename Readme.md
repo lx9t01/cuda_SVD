@@ -81,15 +81,21 @@ While iterative training could yield an accurate result in CPU demo, it’s not 
 * In most real-world cases, data are in huge amount. Therefore, it makes sense for GPU or CPU training process to just parse through the data and finish the training, because they are likely to be converged in that case. 
 * I expand the training data by simply copying the existing data several more times and concat them in the bottom of file, and it helps the CPU and GPU code to converge. 
 
-
 ### Results
+Note: 
+because GPU training is updated inside the kernel, I did not print out RMS error every time the P and Q are updated, but just print out them in the end. They are similar to CPU RMS error. 
 
+1. Original non-expanded training file: 
+Total time to run decomposition on CPU: 1.524624 (s)
+Total time to run decomposition on GPU: 0.496859 (s)
+RMS CPU: 3.69954
+GPU RMS: 3.69957
 
-
-
+2. Expanded training file
 
 ### Performance Analysis
-
+1. The GPU has significant time advantage over CPU (3x);
+2. Because the training is not completed compared with iterative model, The RMS error is huge. 
 
 ### Resources
 
