@@ -329,32 +329,32 @@ int main(int argc, char* argv[]) {
     int num_users;
     int num_items;
     int num_f;
-    if (argc == 3) {
+    if (argc == 2) {
         num_users = 943;
         num_items = 1682;
         num_f = 30;
-    } else if (argc == 6){
+    } else if (argc == 5){
         num_users = atoi(argv[2]);
         num_items = atoi(argv[3]);
         num_f = atoi(argv[4]);
     } else {
-        printf("./classify <path to training datafile> <patht to test data file> \
+        printf("./classify <path to training datafile> optional \
             (<number of users> <number of items> <number of dimensions f>)\n");
         return -1;
     }
-    const float gamma = 0.0001;
-    const float lamda = 0.00005;
+    const float gamma = 0.001;
+    const float lamda = 0.0005;
 
     // CPU decomposition
     float time_initial, time_final;
     time_initial = clock();
 
-    ifstream infile_t(argv[1]); // the training data
-    ifstream infile_v(argv[2]); // the testing data
+    ifstream infile_cpu(argv[1]); // the training data
+    ifstream infile_gpu(argv[1]); // the testing data
 
     stringstream buffer1, buffer2;
-    buffer1 << infile_t.rdbuf();
-    buffer2 << infile_v.rdbuf();
+    buffer1 << infile_cpu.rdbuf();
+    buffer2 << infile_gpu.rdbuf();
 
     decompose_CPU(buffer1, BATCH_SIZE, num_users, num_items, num_f, gamma, lamda);
 
@@ -364,7 +364,7 @@ int main(int argc, char* argv[]) {
 
     // GPU decomposition
 
-    decompose_GPU(buffer1, BATCH_SIZE, num_users, num_items, num_f, gamma, lamda);
+    decompose_GPU(buffer2, BATCH_SIZE, num_users, num_items, num_f, gamma, lamda);
     // end of GPU decomposition
 
 
