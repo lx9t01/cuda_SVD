@@ -39,7 +39,7 @@ this is a small portion of the netflix contest data file
 _Parameters in the program_
 
 | parameter        | value          | comments  |
-| ------------- |:-------------:| -----:|
+| ------------- |:——————:|: ----- |
 | BATCH_SIZE      | 1000 | defines batch size |
 | PARSE_THROUGH      | 1      |   a toggle of whether use CPU to training iteratively (0) or one-time (1)|
 |  () | 0.02      |  The threshold to determine when the result converges in iterative mode |
